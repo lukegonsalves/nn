@@ -1,5 +1,11 @@
+#include <Eigen/Dense>
 #include <iostream>
 
-int main(int argc, char* argv[]){
-    std::cout << "Hello, from nn!\n";
+int main() {
+    Eigen::Matrix2d m;
+    m << 1, 2,
+         3, 4;
+
+    std::cout << "Matrix:\n" << m << std::endl;
+    return 0;
 }
