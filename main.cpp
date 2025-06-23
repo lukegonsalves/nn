@@ -9,8 +9,8 @@ class Value {
         std::shared_ptr<Value> left = nullptr , right = nullptr;
         std::string op;
 
-        Value() : data(0), grad(0) {}
-        Value(float x) : data(x), grad(0), op("") {}
+        Value() : data(0), grad(1) {}
+        Value(float x) : data(x), grad(1), op("") {}
 
         // Arithmetic Operators
         Value operator+(Value const& other){
@@ -54,11 +54,21 @@ int main() {
  
 
     Value a(2), b(-3), c(10), f(-2);
-    Value e = a*b;
-    Value d = e + c;
-    Value L = d * f;
+    Value e = a*b; // de/de = 1, de/da = b, de/db == a;
+    Value d = e + c; // dd/dd = 1, dd/de = c, dd/dc = e;
+    Value L = d * f; // dL/dd = f, dL/df = d;
     Value exp = L * 1;
     // L = ((a2*b-3)+c10) * f-2
+    //              -8 L
+    //           -2 f  *  4 d
+    //                10 c  +  -6 e          
+    //                      -3 b * 2 a
+    // dL/dd = f, dL/df = d
+    // dL/dc = dL/dd * dd/dc = f * 1
+    // dL/de = dL/dd * dd/de = f * 1
+    // dL/db = dL/de * de/db = (f ) * a
+    // dL/da = dL/de * de/da = (f ) * b
+
     std::cout << L << std::endl;
 
     std::stack<std::shared_ptr<Value>> s;
@@ -66,7 +76,7 @@ int main() {
     s.push(head);
     while ( !s.empty() ){
         std::shared_ptr<Value> temp = s.top();
-        std::cout << s.top()->data << std::endl;    
+        std::cout << "Value(data= " << temp->data << " | grad= " << temp->grad << ") "<< std::endl;    
         s.pop();
         if( temp->left != NULL ){
             s.push(temp->left);
