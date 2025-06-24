@@ -76,12 +76,23 @@ std::vector<std::shared_ptr<Value>> backward(std::shared_ptr<Value> head){
 
 }
 
+// Wrappers 
+// Addition
 std::shared_ptr<Value> operator+(
     const std::shared_ptr<Value>& lhs,
     const std::shared_ptr<Value>& rhs) {
     return lhs->operator+(rhs);
 }
 
+std::shared_ptr<Value> operator+(const std::shared_ptr<Value>& lhs, float rhs) {
+    return lhs->operator+(std::make_shared<Value>(rhs));
+}
+
+std::shared_ptr<Value> operator+(float lhs, const std::shared_ptr<Value>& rhs) {
+    return std::make_shared<Value>(lhs)->operator+(rhs);
+}
+
+// Multiplication
 std::shared_ptr<Value> operator*(
     const std::shared_ptr<Value>& lhs,
     const std::shared_ptr<Value>& rhs) {
@@ -110,7 +121,7 @@ int main() {
     auto e = a * b;      // e = a * b
     auto d = e + c;         // d = e + c
     auto L = d * f;         // L = d * f
-
+    auto T = L + 1.0f;
     // L = ((a2*b-3)+c10) * f-2
     //              -8 L
     //           -2 f  *  4 d
@@ -122,7 +133,7 @@ int main() {
     // dL/db = dL/de * de/db = (f ) * a
     // dL/da = dL/de * de/da = (f ) * b
 
-    std::vector<std::shared_ptr<Value>> order = backward(L);
+    std::vector<std::shared_ptr<Value>> order = backward(T);
     std::cout << std::endl;
     // for(int i = 0; i < order.size(); i++){
     //     std::cout << "Value(data= " << order[i]->data << " | grad= " << order[i]->grad << ") Leaf nodes: "<< order[i]->left->data <<", " << order[i]->right->data <<  std::endl; 
