@@ -2,42 +2,91 @@
 #include <iostream>
 #include <memory>
 #include <stack>
+#include <vector>
 
-class Value {
+class Value : public std::enable_shared_from_this<Value>{
     public: 
-        float data, grad;
-        std::shared_ptr<Value> left = nullptr , right = nullptr;
+        float data, grad, back;
+        std::shared_ptr<Value> left, right;
         std::string op;
 
-        Value() : data(0), grad(1) {}
-        Value(float x) : data(x), grad(1), op("") {}
+        Value() : data(0), grad(0) {}
+        Value(float x) : data(x), grad(0), op("") {}
 
         // Arithmetic Operators
-        Value operator+(Value const& other){
-            auto res = std::make_shared<Value>(other.data + data);
+        std::shared_ptr<Value> operator+(std::shared_ptr<Value> const& other){
+            auto res = std::make_shared<Value>(other->data + this->data);
             res->op = "+";
-            res->left = std::make_shared<Value>(*this);
-            res->right = std::make_shared<Value>(other);
-            std::cout << "Value(data= " << data << " | grad= " << grad << ") " << res->op << " Value(data= " << other.data << " | grad= " << other.grad << ")" << std::endl; 
-            return *res;
+            res->left = shared_from_this();
+            res->right = other;
+            // std::cout << "Value(data= " << this->data << " | grad= " << this->grad << ") " << res->op << " Value(data= " << other->data << " | grad= " << other->grad << ")" << std::endl; 
+            return res;
         }
 
-        Value operator*(Value const& other){
-            auto res = std::make_shared<Value>(other.data * data);
+        std::shared_ptr<Value> operator*(std::shared_ptr<Value> const& other){
+            auto res = std::make_shared<Value>(other->data * this->data);
             res->op = "*";
-            res->left = std::make_shared<Value>(*this);
-            res->right = std::make_shared<Value>(other);
-            std::cout << "Value(data= " << data << " | grad= " << grad << ") "<< res->op << " Value(data= " << other.data << " | grad= " << other.grad << ")" << std::endl; 
-            return *res;
+            res->left = shared_from_this();
+            res->right = other;
+            // std::cout << "Value(data= " << this->data << " | grad= " << this->grad << ") "<< res->op << " Value(data= " << other->data << " | grad= " << other->grad << ")" << std::endl; 
+            return res;
         }
 
         // ostream
-        friend std::ostream& operator<<(std::ostream& out, const Value& obj){
-            out << "Value(data= " << obj.data << " | grad= " << obj.grad << ")" << std::endl;
+        friend std::ostream& operator<<(std::ostream& out, const std::shared_ptr<Value>& obj){
+            out << "Value(data= " << obj->data << " | grad= " << obj->grad << ")" << std::endl;
             return out;
         }
 };
+ 
+std::vector<std::shared_ptr<Value>> backward(std::shared_ptr<Value> head){
+    std::vector<std::shared_ptr<Value>> topo;
+    std::stack<std::shared_ptr<Value>> s;
 
+
+    // DFS to build the topo sort order
+    s.push(head);
+    while ( !s.empty() ){
+        std::shared_ptr<Value> temp = s.top();
+        topo.push_back(temp);
+        // std::cout << "Value(data= " << temp->data << " | grad= " << temp->grad << ") "<< std::endl;    
+        s.pop();
+        if( temp->left != NULL ){
+            s.push(temp->left);
+        }
+        if( temp->right != NULL ){
+            s.push(temp->right);
+        }
+    }
+    // 
+    head->grad = 1; // root of the tree needs grad = 1; (grad = 0 by default)
+    for(auto it = topo.begin(); it != topo.end(); it++){
+        auto v = *it;
+        if( v->op == "+"){
+            if ( v->left ) v->left->grad += 1 * v->grad;
+            if ( v->right ) v->right->grad += 1 * v->grad;
+        }
+        else if( v->op == "*"){
+            if ( v->left ) v->left->grad += v->right->data * v->grad;
+            if ( v->right ) v->right->grad += v->left->data * v->grad;
+        }
+        std::cout << "Value(data= " << v->data << " | grad= " << v->grad << ") "<< std::endl;    
+    }
+    return topo;
+
+}
+
+std::shared_ptr<Value> operator+(
+    const std::shared_ptr<Value>& lhs,
+    const std::shared_ptr<Value>& rhs) {
+    return lhs->operator+(rhs);
+}
+
+std::shared_ptr<Value> operator*(
+    const std::shared_ptr<Value>& lhs,
+    const std::shared_ptr<Value>& rhs) {
+    return lhs->operator*(rhs);
+}
 
 int main() {
     // Eigen::VectorXd x(2);
@@ -53,11 +102,15 @@ int main() {
 
  
 
-    Value a(2), b(-3), c(10), f(-2);
-    Value e = a*b; // de/de = 1, de/da = b, de/db == a;
-    Value d = e + c; // dd/dd = 1, dd/de = c, dd/dc = e;
-    Value L = d * f; // dL/dd = f, dL/df = d;
-    Value exp = L * 1;
+    auto a = std::make_shared<Value>(2);
+    auto b = std::make_shared<Value>(-3);
+    auto c = std::make_shared<Value>(10);
+    auto f = std::make_shared<Value>(-2);
+
+    auto e = a * b;      // e = a * b
+    auto d = e + c;         // d = e + c
+    auto L = d * f;         // L = d * f
+
     // L = ((a2*b-3)+c10) * f-2
     //              -8 L
     //           -2 f  *  4 d
@@ -69,22 +122,11 @@ int main() {
     // dL/db = dL/de * de/db = (f ) * a
     // dL/da = dL/de * de/da = (f ) * b
 
-    std::cout << L << std::endl;
-
-    std::stack<std::shared_ptr<Value>> s;
-    std::shared_ptr<Value> head = exp.left;
-    s.push(head);
-    while ( !s.empty() ){
-        std::shared_ptr<Value> temp = s.top();
-        std::cout << "Value(data= " << temp->data << " | grad= " << temp->grad << ") "<< std::endl;    
-        s.pop();
-        if( temp->left != NULL ){
-            s.push(temp->left);
-        }
-        if( temp->right != NULL ){
-            s.push(temp->right);
-        }
-    }
+    std::vector<std::shared_ptr<Value>> order = backward(L);
+    std::cout << std::endl;
+    // for(int i = 0; i < order.size(); i++){
+    //     std::cout << "Value(data= " << order[i]->data << " | grad= " << order[i]->grad << ") Leaf nodes: "<< order[i]->left->data <<", " << order[i]->right->data <<  std::endl; 
+    // }
     // Value* ptr = std::make_shared<Value>(c);
     // std::cout << ptr->data << std::endl;
     return 0;
