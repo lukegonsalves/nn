@@ -342,37 +342,50 @@ int main() {
             x.push_back(std::make_shared<Value>(inputs[i][j]));
         }
         xs.push_back(x);
-        auto y = n->forward(x);
+
+    }
+    // initial forward pass
+    for(int i = 0; i < xs.size(); i++){
+        auto y = n->forward(xs[i]);
         ypred.push_back(y[0]);
     }
 
-    // auto n = std::make_shared<Neuron>(2);
-    // auto out = n->forward(x);
+    // Training loop
+    for(int step = 0; step < 3; step++){
+        // Forward pass - output
+        for(int i = 0; i < xs.size(); i++){
+            auto y = n->forward(xs[i]);
+            ypred[i] = (y[0]);
+        }
 
+        std::cout << "Step: " << step << std::endl;
+        std::cout << "Value(data= ";
+        for(int i = 0; i < ypred.size(); i++){
+            std::cout  << ypred[i]->data << ", ";
+        }
+        std::cout << ") " << std::endl;
+        // backward pass - loss
+        auto loss = std::make_shared<Value>(0);
+        for(int i = 0; i < ys.size(); i++){
+            loss = loss + power(ys[i] - ypred[i], 2.0f);
+        }
 
-    std::cout << "Output: " << std::endl;
-    for(int i = 0; i < ypred.size(); i++){
-        std::cout << "Value(data= " << ypred[i]->data << ") " << std::endl;
-    }
+        std::cout<< "Loss= " << loss << std::endl;
+        std::vector<std::shared_ptr<Value>> order = backward(loss);
 
-    auto loss = std::make_shared<Value>(0);
-    for(int i = 0; i < ys.size(); i++){
-        loss = loss + power(ys[i] - ypred[i], 2.0f);
-    }
-
-    std::cout<< "Loss= " << loss << std::endl;
-    std::vector<std::shared_ptr<Value>> order = backward(loss);
-
-    // gradient descent
-    float learning_rate = 0.01;
-    for (auto& layer : n->layers) {
-        for (auto& neuron : layer->neurons) {
-            for (auto& p : neuron->parameters()) {
-                p->data -= learning_rate * p->grad;
-                p->grad = 0.0f; // reset grad for next iteration
+        // gradient descent
+        float learning_rate = 0.01;
+        for (auto& layer : n->layers) {
+            for (auto& neuron : layer->neurons) {
+                for (auto& p : neuron->parameters()) {
+                    p->data -= learning_rate * p->grad;
+                    p->grad = 0.0f; // reset grad for next iteration
+                }
             }
         }
+
     }
+
 
 
     std::cout << "total params= " << n->parameters().size() << std::endl;
