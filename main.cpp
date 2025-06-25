@@ -154,7 +154,7 @@ std::shared_ptr<Value> operator+(float lhs, const std::shared_ptr<Value>& rhs) {
 std::shared_ptr<Value> operator-(
     const std::shared_ptr<Value>& lhs,
     const std::shared_ptr<Value>& rhs) {
-    return lhs->operator+(rhs);
+    return lhs->operator-(rhs);
 }
 
 // Multiplication
@@ -351,7 +351,7 @@ int main() {
     }
 
     // Training loop
-    for(int step = 0; step < 3; step++){
+    for(int step = 0; step < 10; step++){
         // Forward pass - output
         for(int i = 0; i < xs.size(); i++){
             auto y = n->forward(xs[i]);
