@@ -370,8 +370,7 @@ int main() {
         // backward pass - loss
         auto loss = std::make_shared<Value>(0);
         for(int i = 0; i < ys.size(); i++){
-            auto error = ys[i] - ypred[i];
-            loss = loss + (error * error);
+            loss = loss + power(ys[i] - ypred[i], 2.0f);
         }
 
         std::cout<< "Loss= " << loss << std::endl;
