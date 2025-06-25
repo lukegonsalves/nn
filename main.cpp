@@ -322,18 +322,19 @@ int main() {
     // Value* ptr = std::make_shared<Value>(c);
     // std::cout << ptr->data << std::endl;
 
+    // Assemble MLP
     std::vector<int> layersz = {4, 4, 1};
     auto n = std::make_shared<MLP>(3, layersz);
-
+    
+    // Raw Training Data
     std::vector<std::vector<float>> inputs = { {2 , 3, -1}, {3, -1, 0.5}, {0.5, 1, 1}, {1, 1, -1}};
     std::vector<float> outputs = {1, -1, -1, 1};
    
-    std::vector<std::shared_ptr<Value>> ys;
+    // Format data into the tractable types
+    std::vector<std::shared_ptr<Value>> ys; 
     for(int i = 0; i < outputs.size(); i++){
         ys.push_back(std::make_shared<Value>(outputs[i]));
     }
-
-    std::vector<std::shared_ptr<Value>> ypred;
 
     std::vector<std::vector<std::shared_ptr<Value>>> xs;
     for(int i = 0; i < inputs.size(); i++){
@@ -342,12 +343,14 @@ int main() {
             x.push_back(std::make_shared<Value>(inputs[i][j]));
         }
         xs.push_back(x);
-
     }
+
     // initial forward pass
+    std::vector<std::shared_ptr<Value>> ypred;
+
     for(int i = 0; i < xs.size(); i++){
         auto y = n->forward(xs[i]);
-        ypred.push_back(y[0]);
+        ypred.push_back(y[0]); // Note the y[0] assumes the final layer is of size 1
     }
 
     // Training loop
@@ -355,7 +358,7 @@ int main() {
         // Forward pass - output
         for(int i = 0; i < xs.size(); i++){
             auto y = n->forward(xs[i]);
-            ypred[i] = (y[0]);
+            ypred[i] = (y[0]); // Again y[0], final layer of size 1 assumption
         }
 
         std::cout << "Step: " << step << std::endl;
@@ -367,7 +370,8 @@ int main() {
         // backward pass - loss
         auto loss = std::make_shared<Value>(0);
         for(int i = 0; i < ys.size(); i++){
-            loss = loss + power(ys[i] - ypred[i], 2.0f);
+            auto error = ys[i] - ypred[i];
+            loss = loss + (error * error);
         }
 
         std::cout<< "Loss= " << loss << std::endl;
