@@ -1,9 +1,11 @@
 # NN
-## nn is an C++ MLP library built on reverse mode algorithmic differentiation.
+ __nn__ is an C++ MLP library built on reverse mode algorithmic differentiation (AD).
 
 ### Build from source
-Requires >=CMake3.10.0
-`git clone https://github.com/lukegonsalves/nn.git
-mkdir nn/build && cd nn/build
+Requires __>=CMake3.10.0__
+
+```git clone https://github.com/lukegonsalves/nn.git
+mkdir nn/build
+cd nn/build
 cmake ..
-make nn`
+make nn```
