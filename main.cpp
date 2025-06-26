@@ -324,7 +324,7 @@ int main() {
 
     // Assemble MLP
     std::vector<int> layersz = {4, 4, 1};
-    auto n = std::make_shared<MLP>(3, layersz);
+    auto n = std::make_shared<MLP>(3, layersz); // {3(i), 4, 4, 1(o)}
     
     // Raw Training Data
     std::vector<std::vector<float>> inputs = { {2 , 3, -1}, {3, -1, 0.5}, {0.5, 1, 1}, {1, 1, -1}};
