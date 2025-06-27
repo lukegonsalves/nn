@@ -277,52 +277,7 @@ class MLP{
 };
 
 int main() {
-    // Eigen::VectorXd x(2);
-    // Eigen::MatrixXd A(2,2);
-    // Eigen::VectorXd y(2);
-    // x << 1, 1;
-    // A << 1, 2,
-    //      3, 4;
-    // y = A*x;
-    // std::cout << "Matrix:\n" << A << std::endl;
-    // std::cout << "Matrix:\n" << x << std::endl;
-    // std::cout << "Matrix:\n" << y << std::endl;
-
- 
-
-    // auto a = std::make_shared<Value>(2);
-    // auto b = std::make_shared<Value>(-3);
-    // auto c = std::make_shared<Value>(10);
-    // auto f = std::make_shared<Value>(-2);
-
-    // auto e = a * b;      // e = a * b
-    // auto d = e + c;         // d = e + c
-    // auto L = d * f;         // L = d * f
-    // auto T = power(L, 1.0f);
-    // auto U = relu(T);
-
-    // std::cout << std::endl;
-    // std::vector<std::shared_ptr<Value>> order = backward(U);
-    // std::cout << std::endl;
-
-    // L = ((a2*b-3)+c10) * f-2
-    //              -8 L
-    //           -2 f  *  4 d
-    //                10 c  +  -6 e          
-    //                      -3 b * 2 a
-    // dL/dd = f, dL/df = d
-    // dL/dc = dL/dd * dd/dc = f * 1
-    // dL/de = dL/dd * dd/de = f * 1
-    // dL/db = dL/de * de/db = (f ) * a
-    // dL/da = dL/de * de/da = (f ) * b
-
-    // for(int i = 0; i < order.size(); i++){
-    //     std::cout << "Value(data= " << order[i]->data << " | grad= " << order[i]->grad << ") Leaf nodes: "<< order[i]->left->data <<", " << order[i]->right->data <<  std::endl; 
-    // }
-    // Value* ptr = std::make_shared<Value>(c);
-    // std::cout << ptr->data << std::endl;
-
-    // Assemble MLP
+     // Assemble MLP
     std::vector<int> layersz = {4, 4, 1};
     auto n = std::make_shared<MLP>(3, layersz); // {3(i), 4, 4, 1(o)}
     
